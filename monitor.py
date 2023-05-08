@@ -7,10 +7,26 @@ import time
 def parse_args():
     parser = argparse.ArgumentParser(description='System resource usage monitor')
     parser.add_argument('--pid', '-p', type=int, help='PID')
+    parser.add_argument('--cmd', type=str, help='command')
     return parser.parse_args()
+
+def get_pid(cmd):
+    with os.popen(cmd) as file_in:
+        resp = file_in.readlines()
+    if len(resp) < 2:
+        return 0
+    pid_of_myself = os.getpid()
+    for r in resp[1:]:
+        pid = int(resp[1].split()[0])
+        if pid != pid_of_myself:
+            return pid
+    return 0
 
 def main():
     args = parse_args()
+    if args.pid is None:
+        args.pid = get_pid(args.cmd)
+        print(f'get_pid: {args.pid}')
     total_cpu_percent = 0
     total_memory_percent = 0
     count = 0
